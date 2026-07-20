@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if mode == 'edit' else 'Tambah' }} Barang{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-7">
+    <h1 class="mb-4">{{ 'Edit' if mode == 'edit' else 'Tambah' }} Barang</h1>
+
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">Nama Barang <span class="text-danger">*</span></label>
+            <input type="text" name="nama" class="form-control" maxlength="100"
+                   value="{{ data.get('nama', '') }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Kategori <span class="text-danger">*</span></label>
+            <select name="kategori" class="form-select" required>
+                <option value="">-- Pilih kategori --</option>
+                {% for k in kategori_list %}
+                    <option value="{{ k }}" {{ 'selected' if data.get('kategori') == k }}>{{ k }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Kondisi</label>
+                <select name="kondisi" class="form-select">
+                    {% for k in kondisi_list %}
+                        <option value="{{ k }}" {{ 'selected' if data.get('kondisi') == k }}>{{ k }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Jumlah <span class="text-danger">*</span></label>
+                <input type="number" name="jumlah" class="form-control" min="1"
+                       value="{{ data.get('jumlah', 1) }}" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Keterangan</label>
+            <textarea name="keterangan" class="form-control" rows="3">{{ data.get('keterangan', '') }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            {{ 'Simpan Perubahan' if mode == 'edit' else 'Tambah Barang' }}
+        </button>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Batal</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

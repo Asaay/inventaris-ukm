@@ -9,12 +9,28 @@
 <body>
     <nav class="navbar navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="/">Inventaris UKM</a>
+            <a class="navbar-brand" href="{{ url_for('index') }}">Inventaris UKM</a>
+            <a class="btn btn-sm btn-outline-light" href="{{ url_for('tambah_barang') }}">
+                + Tambah Barang
+            </a>
         </div>
     </nav>
 
     <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for kategori, pesan in messages %}
+                    <div class="alert alert-{{ kategori }} alert-dismissible fade show">
+                        {{ pesan }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         {% block content %}{% endblock %}
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
