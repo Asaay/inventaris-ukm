@@ -19,3 +19,10 @@
 - Validasi HTML bisa dilewati lewat DevTools → wajib validasi ulang di server
 - Barang yang sedang dipinjam tidak boleh dihapus (integritas data)
 - `get_or_404()` mencegah crash saat ID tidak ada
+
+
+Beda hashing dan enkripsi (satu arah vs dua arah)
+Kenapa password di-hash, bukan disimpan apa adanya
+Beda autentikasi (siapa kamu) dan otorisasi (boleh apa)
+Kenapa pesan error login dibuat kabur (mencegah user enumeration)
+Kenapa menyembunyikan tombol di UI tidak cukup — server tetap harus mengecek

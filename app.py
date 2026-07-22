@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_login import LoginManager, login_required
+from flask_login import (LoginManager, login_user, logout_user,
+                         login_required, current_user)
 from models import db, User, Barang, Peminjaman
 
 app = Flask(__name__)
@@ -169,6 +170,10 @@ def edit_barang(id):
 @app.route('/barang/<int:id>/hapus', methods=['POST'])
 @login_required
 def hapus_barang(id):
+    if not current_user.is_admin:
+        flash('Hanya admin yang dapat menghapus barang.', 'danger')
+        return redirect(url_for('index'))
+
     barang = Barang.query.get_or_404(id)
 
     if barang.jumlah_dipinjam > 0:
