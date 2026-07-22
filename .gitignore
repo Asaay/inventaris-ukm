@@ -4,3 +4,5 @@ __pycache__/
 instance/
 .env
 *.db
+
+catatan.md
