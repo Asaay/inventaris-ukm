@@ -32,6 +32,12 @@
                     {% endif %}
                 </td>
                 <td class="text-end">
+                    {% if current_user.is_authenticated and barang.tersedia > 0 %}
+                    <form method="POST" action="{{ url_for('pinjam_barang', id=barang.id) }}"
+                          class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-success">Pinjam</button>
+                    </form>
+                    {% endif %}
                     <a href="{{ url_for('edit_barang', id=barang.id) }}"
                        class="btn btn-sm btn-outline-primary">Edit</a>
 

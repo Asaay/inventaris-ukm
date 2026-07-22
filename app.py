@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import (LoginManager, login_user, logout_user,
                          login_required, current_user)
 from models import db, User, Barang, Peminjaman
+from datetime import datetime
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'ganti-ini-nanti-dengan-string-acak'
@@ -203,6 +205,59 @@ def validasi(nama, kategori, kondisi, jumlah):
     if int(jumlah) < 1:
         return 'Jumlah minimal 1.'
     return None
+
+
+# ---------- PINJAM ----------
+@app.route('/barang/<int:id>/pinjam', methods=['POST'])
+@login_required
+def pinjam_barang(id):
+    barang = Barang.query.get_or_404(id)
+
+    if barang.tersedia < 1:
+        flash(f'"{barang.nama}" sedang tidak tersedia.', 'danger')
+        return redirect(url_for('index'))
+
+    # cegah pinjam barang yang sama dua kali sekaligus
+    sudah_pinjam = Peminjaman.query.filter_by(
+        user_id=current_user.id, barang_id=id, status='dipinjam').first()
+    if sudah_pinjam:
+        flash(f'Anda sudah meminjam "{barang.nama}".', 'warning')
+        return redirect(url_for('index'))
+
+    peminjaman = Peminjaman(user_id=current_user.id, barang_id=id)
+    db.session.add(peminjaman)
+    db.session.commit()
+
+    flash(f'Anda meminjam "{barang.nama}".', 'success')
+    return redirect(url_for('index'))
+
+
+# ---------- KEMBALIKAN ----------
+@app.route('/peminjaman/<int:id>/kembalikan', methods=['POST'])
+@login_required
+def kembalikan_barang(id):
+    peminjaman = Peminjaman.query.get_or_404(id)
+
+    # hanya peminjam sendiri atau admin yang boleh mengembalikan
+    if peminjaman.user_id != current_user.id and not current_user.is_admin:
+        flash('Anda tidak berhak mengembalikan peminjaman ini.', 'danger')
+        return redirect(url_for('index'))
+
+    peminjaman.status = 'selesai'
+    peminjaman.tanggal_kembali = datetime.utcnow()
+    db.session.commit()
+
+    flash(f'"{peminjaman.barang.nama}" berhasil dikembalikan.', 'success')
+    return redirect(url_for('peminjaman_saya'))
+
+
+# ---------- DAFTAR PEMINJAMAN SAYA ----------
+@app.route('/peminjaman')
+@login_required
+def peminjaman_saya():
+    daftar = Peminjaman.query.filter_by(
+        user_id=current_user.id).order_by(Peminjaman.tanggal_pinjam.desc()).all()
+    return render_template('peminjaman.html', daftar=daftar)
 
 
 if __name__ == '__main__':

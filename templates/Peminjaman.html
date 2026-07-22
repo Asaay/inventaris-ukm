@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Peminjaman Saya{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4">Peminjaman Saya</h1>
+
+    <table class="table table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Barang</th>
+                <th>Tanggal Pinjam</th>
+                <th>Status</th>
+                <th class="text-end">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in daftar %}
+            <tr>
+                <td>{{ p.barang.nama }}</td>
+                <td>{{ p.tanggal_pinjam.strftime('%d %b %Y, %H:%M') }}</td>
+                <td>
+                    {% if p.status == 'dipinjam' %}
+                        <span class="badge bg-warning text-dark">Dipinjam</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Selesai</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    {% if p.status == 'dipinjam' %}
+                    <form method="POST" action="{{ url_for('kembalikan_barang', id=p.id) }}"
+                          class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-success">Kembalikan</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="text-center text-muted py-4">
+                    Anda belum meminjam apa pun.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
