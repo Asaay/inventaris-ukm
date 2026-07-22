@@ -1,7 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
-
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import (LoginManager, login_user, logout_user, login_required, current_user)
 db = SQLAlchemy()
 
 
@@ -15,7 +16,12 @@ class User(UserMixin, db.Model):
     peminjaman = db.relationship('Peminjaman', backref='peminjam', lazy=True)
 
     def __repr__(self):
-        return f'<User {self.email}>'
+        return f'<User {self.email}>' 
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 
 class Barang(db.Model):

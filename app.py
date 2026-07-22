@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, login_required
 from models import db, User, Barang, Peminjaman
 
 app = Flask(__name__)
@@ -7,6 +8,82 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///inventaris.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Silakan login terlebih dahulu.'
+login_manager.login_message_category = 'warning'
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# ---------- REGISTER ----------
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        nama     = request.form.get('nama', '').strip()
+        email    = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        password2 = request.form.get('password2', '')
+
+        if not nama or not email or not password:
+            flash('Semua kolom wajib diisi.', 'danger')
+        elif password != password2:
+            flash('Konfirmasi password tidak cocok.', 'danger')
+        elif len(password) < 6:
+            flash('Password minimal 6 karakter.', 'danger')
+        elif User.query.filter_by(email=email).first():
+            flash('Email sudah terdaftar.', 'danger')
+        else:
+            user = User(nama=nama, email=email)
+            user.set_password(password)
+            # pengguna pertama otomatis jadi admin
+            if User.query.count() == 0:
+                user.is_admin = True
+            db.session.add(user)
+            db.session.commit()
+            flash('Registrasi berhasil. Silakan login.', 'success')
+            return redirect(url_for('login'))
+
+    return render_template('register.html')
+
+
+# ---------- LOGIN ----------
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        email    = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+
+        user = User.query.filter_by(email=email).first()
+
+        if user and user.check_password(password):
+            login_user(user)
+            flash(f'Selamat datang, {user.nama}.', 'success')
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('index'))
+        else:
+            flash('Email atau password salah.', 'danger')
+
+    return render_template('login.html')
+
+
+# ---------- LOGOUT ----------
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Anda telah logout.', 'info')
+    return redirect(url_for('login'))
+
 
 KATEGORI = ['Alat Musik', 'Kostum', 'Audio', 'Properti', 'Lainnya']
 KONDISI  = ['Baik', 'Rusak Ringan', 'Rusak Berat']
@@ -21,6 +98,7 @@ def index():
 
 # ---------- CREATE ----------
 @app.route('/barang/tambah', methods=['GET', 'POST'])
+@login_required
 def tambah_barang():
     if request.method == 'POST':
         nama       = request.form.get('nama', '').strip()
@@ -50,6 +128,7 @@ def tambah_barang():
 
 # ---------- UPDATE ----------
 @app.route('/barang/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_barang(id):
     barang = Barang.query.get_or_404(id)
 
@@ -88,6 +167,7 @@ def edit_barang(id):
 
 # ---------- DELETE ----------
 @app.route('/barang/<int:id>/hapus', methods=['POST'])
+@login_required
 def hapus_barang(id):
     barang = Barang.query.get_or_404(id)
 
