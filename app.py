@@ -3,10 +3,10 @@ from flask_login import (LoginManager, login_user, logout_user,
                          login_required, current_user)
 from models import db, User, Barang, Peminjaman
 from datetime import datetime
-
+import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ganti-ini-nanti-dengan-string-acak'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'kunci-dev-lokal')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///inventaris.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -21,6 +21,9 @@ login_manager.login_message_category = 'warning'
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+with app.app_context():
+    db.create_all()
 
 # ---------- REGISTER ----------
 @app.route('/register', methods=['GET', 'POST'])
